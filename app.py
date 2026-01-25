@@ -12,7 +12,7 @@ from huggingface_hub import snapshot_download
 
 from huggingface_hub import login
 HF_TOKEN = os.environ.get('HF_TOKEN')
-login(token=HF_TOKEN)
+#login(token=HF_TOKEN)
 
 # Global model holders - keyed by (model_type, model_size)
 loaded_models = {}
