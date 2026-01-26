@@ -173,12 +173,17 @@ def build_ui():
         font=[gr.themes.GoogleFont("Source Sans Pro"), "Arial", "sans-serif"],
     )
 
-    css = """
-    .gradio-container {max-width: none !important;}
-    .tab-content {padding: 20px;}
-    """
+#    css = """
+#    .gradio-container {max-width: none !important;}
+#    .tab-content {padding: 20px;}
+#    """
 
-    with gr.Blocks(theme=theme, css=css, title="Qwen3-TTS Demo") as demo:
+    with gr.Blocks(title="Qwen3-TTS") as demo:
+        demo.load(
+            None,
+            None,
+            js="() => {const params = new URLSearchParams(window.location.search);if (!params.has('__theme')) {params.set('__theme', 'dark');window.location.search = params.toString();}}"
+        )
         gr.Markdown(
             """
 # Qwen3-TTS Demo
