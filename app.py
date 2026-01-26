@@ -53,16 +53,13 @@ REFERENCE_TXT = read_text_for_audio(os.path.join(REF_DIR, REFERENCE[0]))
 CUSTOM_TXT = read_text_for_audio(os.path.join(CUSTOM_DIR, CUSTOM_VOICE[0]))
 def toggle_voice_audio(selected_file, voice_mode):
     global reference_playing_state
-    if not selected_file:
-        gr.Warning("⚠️ Please select a file")
-        return None, "▶️ Play/Stop", gr.update(visible=False), gr.update(visible=False)
-    if voice_mode == "predefined":
+    if voice_mode == "reference":
         base_path = REF_DIR
     else: 
         base_path = CUSTOM_DIR
     
     file_path = os.path.join(base_path,selected_file)
-    print('aaaaaaaaaaaaaaaa',file_path)
+   
     
     #if not file_path.exists():
     #    gr.Error(f"❌ File not found: {selected_file}")
@@ -73,17 +70,13 @@ def toggle_voice_audio(selected_file, voice_mode):
     if reference_playing_state["is_playing"] and reference_playing_state["current_key"] == current_key:
         reference_playing_state = {"is_playing": False, "current_key": None}
         gr.Info(f"⏸️ Stopped: {selected_file}")
-        return None, "▶️ Play/Stop", gr.update(visible=False), gr.update(visible=False)
+        return None
 
     reference_playing_state = {"is_playing": True, "current_key": current_key}
     gr.Info(f"🎵 Playing: {selected_file}")
     
-    return (
-        str(file_path), 
-        "⏸️ Play/Stop", 
-        gr.update(visible=True),  
-        gr.update(value=str(file_path), autoplay=True)  
-    )
+    return str(file_path)  
+    
 def reset_playback_on_mode_change(voice_mode):
 
     global reference_playing_state
@@ -382,27 +375,23 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
 #                            value=False,
 #                        )
 
-                        reference_audio_player = gr.Audio(
-                            visible=False,
+                        pre_player = gr.Audio(
+                            visible=True,
                             label="",
                             interactive=False,
-                            show_label=False,
+                            show_label=True,
                             elem_id="reference-audio-player",
                             autoplay=False  
                             )  
-                        reference_audio_trigger = gr.Audio(
-                            visible=False,
-                            elem_id="reference-audio-trigger"
-                            )
+                        #reference_audio_trigger = gr.Audio(
+                        #    visible=False,
+                        #    elem_id="reference-audio-trigger"
+                        #    )
                         ref_play_btn.click(
-                            fn=lambda file: toggle_voice_audio(file, "predefined"),
+                            fn=lambda file: toggle_voice_audio(file, "reference"),
                             inputs=[clone_ref_audio_drop],
-                            outputs=[
-                                reference_audio_player,
-                                ref_play_btn,    
-                                reference_audio_player, 
-                                reference_audio_player   
-                                ])
+                            outputs=[pre_player]
+                            )
 
                 
                     with gr.Column(scale=2):
