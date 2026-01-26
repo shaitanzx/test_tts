@@ -11,6 +11,7 @@ import gradio as gr
 import numpy as np
 import torch
 import shutil
+import librosa
 from huggingface_hub import snapshot_download
 
 #from huggingface_hub import login
@@ -284,7 +285,20 @@ def generate_voice_design(text, language, voice_description):
         return None, f"Error: {type(e).__name__}: {e}"
 
 
-def generate_voice_clone(ref_audio, ref_text, target_text, language, use_xvector_only, model_size):
+def generate_voice_clone(voice_mode_radio, clone_ref_audio_drop, clone_ref_text_drop, clone_xvector  
+        custom_ref_audio_drop, custom_ref_text_drop,target_text, language, model_size):
+
+    if voice_mode_radio == 'predefine'
+        audio=clone_ref_audio_drop
+        ref_text=clone_ref_text_drop
+        use_xvector_only=clone_xvector
+        path='reference'
+    else:
+        audio=custom_ref_audio_drop
+        ref_text=custom_ref_text_drop
+        use_xvector_only=custom_xvector
+        path='custom'
+    ref_audio, _ = librosa.load(os.path,join(ROOT,path,audio), sr=None)
     """Generate speech using Base (Voice Clone) model."""
     if not target_text or not target_text.strip():
         return None, "Error: Target text is required."
@@ -466,7 +480,10 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                             fn=select_ref_audio,
                             inputs=[clone_ref_audio_drop],
                             outputs=[clone_ref_text_drop]
-                            )                        
+                            )  
+
+
+         
 #                        clone_ref_audio = gr.Audio(
 #                            label="Reference Audio (Upload a voice sample to clone)",
 #                            type="numpy",
@@ -534,11 +551,12 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                     clone_audio_out = gr.Audio(label="Generated Audio", type="numpy")
                     clone_status = gr.Textbox(label="Status", lines=2, interactive=False)
 
-#                clone_btn.click(
-#                    generate_voice_clone,
-#                    inputs=[clone_ref_audio, clone_ref_text, clone_target_text, clone_language, clone_xvector, clone_model_size],
-#                    outputs=[clone_audio_out, clone_status],
-#                )
+                clone_btn.click(
+                    generate_voice_clone,
+                    inputs=[voice_mode_radio, clone_ref_audio_drop, clone_ref_text_drop, clone_xvector  
+                            custom_ref_audio_drop, custom_ref_text_drop, custom_xvector , clone_target_text, clone_language, clone_model_size],
+                    outputs=[clone_audio_out, clone_status],
+                )
 
             # Tab 3: TTS (CustomVoice)
             with gr.Tab("TTS (CustomVoice)"):
