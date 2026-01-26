@@ -28,6 +28,7 @@ def read_text_for_audio(audio_path):
     Возвращает содержимое первого найденного файла или пустую строку.
     """
     base = os.path.splitext(audio_path)[0]
+    print('---------------------',base)
     for ext in ['.txt', '.lab']:
         text_path = base + ext
         if os.path.exists(text_path):
