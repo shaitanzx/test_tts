@@ -380,39 +380,39 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
 #                            value=False,
 #                        )
 
-                reference_audio_player = gr.Audio(
-                    visible=False,
-                    label="",
-                    interactive=False,
-                    show_label=False,
-                    elem_id="reference-audio-player",
-                    autoplay=False  
-                    )  
-                reference_audio_trigger = gr.Audio(
-                    visible=False,
-                    elem_id="reference-audio-trigger"
-                    )
-                predefined_play_btn.click(
-                        fn=lambda file: toggle_voice_audio(file, "predefined"),
-                        inputs=[clone_ref_audio_drop],
-                        outputs=[
-                            reference_audio_player,
-                            predefined_play_btn,    
-                            reference_audio_player, 
-                            reference_audio_player   
-                            ])
-                reference_audio_player = gr.Audio(
-                    visible=False,
-                    label="",
-                    interactive=False,
-                    show_label=False,
-                    elem_id="reference-audio-player",
-                    autoplay=False  
-                    )  
-                reference_audio_trigger = gr.Audio(
-                    visible=False,
-                    elem_id="reference-audio-trigger"
-                    )
+                        reference_audio_player = gr.Audio(
+                            visible=False,
+                            label="",
+                            interactive=False,
+                            show_label=False,
+                            elem_id="reference-audio-player",
+                            autoplay=False  
+                            )  
+                        reference_audio_trigger = gr.Audio(
+                            visible=False,
+                            elem_id="reference-audio-trigger"
+                            )
+                        predefined_play_btn.click(
+                            fn=lambda file: toggle_voice_audio(file, "predefined"),
+                            inputs=[clone_ref_audio_drop],
+                            outputs=[
+                                reference_audio_player,
+                                predefined_play_btn,    
+                                reference_audio_player, 
+                                reference_audio_player   
+                                ])
+                        reference_audio_player = gr.Audio(
+                            visible=False,
+                            label="",
+                            interactive=False,
+                            show_label=False,
+                            elem_id="reference-audio-player",
+                            autoplay=False  
+                            )  
+                        reference_audio_trigger = gr.Audio(
+                            visible=False,
+                            elem_id="reference-audio-trigger"
+                            )
                 
                     with gr.Column(scale=2):
                         clone_target_text = gr.Textbox(
