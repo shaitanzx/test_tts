@@ -21,8 +21,26 @@ loaded_models = {}
 
 # Model size options
 MODEL_SIZES = ["0.6B", "1.7B"]
-
-
+REFERENCE = sorted([f for f in os.listdir("examples") if f.lower().endswith(('.wav', '.mp3'))])
+def read_text_for_audio(audio_path):
+    """
+    Ищет файл с тем же именем, что и audio_path, но с расширением .txt или .lab.
+    Возвращает содержимое первого найденного файла или пустую строку.
+    """
+    base = os.path.splitext(audio_path)[0]
+    for ext in ['.txt', '.lab']:
+        text_path = base + ext
+        if os.path.exists(text_path):
+            try:
+                with open(text_path, 'r', encoding='utf-8') as f:
+                    return f.read().strip()
+            except Exception as e:
+                print(f"Ошибка при чтении {text_path}: {e}")
+                return ""
+    return ""  # ни один файл не найден
+def select_ref_audio(audio_path):
+    return read_text_for_audio(audio_path
+REFERENCE_TXT = read_text_for_audio(REFERENCE[0])
 def get_model_path(model_type: str, model_size: str) -> str:
     """Get model path based on type and size."""
     return snapshot_download(f"Qwen/Qwen3-TTS-12Hz-{model_size}-{model_type}")
@@ -238,6 +256,22 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                 gr.Markdown("### Clone Voice from Reference Audio")
                 with gr.Row():
                     with gr.Column(scale=2):
+                        clone_ref_audio_drop = gr.Dropdown ( 
+                                label="Reference Audio",
+                                choices=REFERENCE,
+                                value=REFERENCE[0],
+                                interactive=True,
+                            )
+                        clone_ref_text_drop= gr.Textbox(
+                                label="Reference Text",
+                                lines=1,
+                                value=REFERENCE_TXT
+                            )
+                        clone_ref_audio_drop.change(
+                            fn=select_ref_audio,
+                            inputs=[clone_ref_audio_drop],
+                            outputs=[clone_ref_text_drop]
+                            )                        
                         clone_ref_audio = gr.Audio(
                             label="Reference Audio (Upload a voice sample to clone)",
                             type="numpy",
@@ -331,13 +365,6 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                     outputs=[tts_audio_out, tts_status],
                 )
 
-        gr.Markdown(
-            """
----
-
-**Note**: This demo uses HuggingFace Spaces Zero GPU. Each generation has a time limit.
-For longer texts, please split them into smaller segments.
-"""
         )
 
     return demo
