@@ -18,7 +18,7 @@ HF_TOKEN = os.environ.get('HF_TOKEN')
 
 # Global model holders - keyed by (model_type, model_size)
 loaded_models = {}
-
+reference_playing_state = {"is_playing": False, "current_file": None}
 # Model size options
 MODEL_SIZES = ["0.6B", "1.7B"]
 REFERENCE = sorted([f for f in os.listdir("reference") if f.lower().endswith(('.wav', '.mp3'))])
@@ -57,11 +57,11 @@ def toggle_voice_audio(selected_file: str, voice_mode: str) -> Tuple[Optional[st
         gr.Warning("⚠️ Please select a file")
         return None, "▶️ Play/Stop", gr.update(visible=False), gr.update(visible=False)
     if voice_mode == "predefined":
-        base_path = get_predefined_voices_path(ensure_absolute=True)
+        base_path = REF_DIR
     else: 
-        base_path = get_reference_audio_path(ensure_absolute=True)
+        base_path = CUSTOM_DIR
     
-    file_path = base_path / selected_file
+    file_path = os.path.join(base_path,selected_file)
     if not file_path.exists():
         gr.Error(f"❌ File not found: {selected_file}")
         return None, "▶️ Play/Stop", gr.update(visible=False), gr.update(visible=False)
@@ -392,27 +392,16 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                             visible=False,
                             elem_id="reference-audio-trigger"
                             )
-                        predefined_play_btn.click(
+                        ref_play_btn.click(
                             fn=lambda file: toggle_voice_audio(file, "predefined"),
                             inputs=[clone_ref_audio_drop],
                             outputs=[
                                 reference_audio_player,
-                                predefined_play_btn,    
+                                ref_play_btn,    
                                 reference_audio_player, 
                                 reference_audio_player   
                                 ])
-                        reference_audio_player = gr.Audio(
-                            visible=False,
-                            label="",
-                            interactive=False,
-                            show_label=False,
-                            elem_id="reference-audio-player",
-                            autoplay=False  
-                            )  
-                        reference_audio_trigger = gr.Audio(
-                            visible=False,
-                            elem_id="reference-audio-trigger"
-                            )
+
                 
                     with gr.Column(scale=2):
                         clone_target_text = gr.Textbox(
