@@ -87,7 +87,7 @@ def sanitize_filename(filename):
         return f"unnamed_file_{uuid.uuid4().hex[:8]}"
 
     # Remove directory separators and leading/trailing whitespace.
-    base_filename = Path(filename).name.strip()
+    base_filename = os.path.basename(filename).strip()
     if not base_filename:
         return f"empty_basename_{uuid.uuid4().hex[:8]}"
 
