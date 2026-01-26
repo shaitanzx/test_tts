@@ -286,7 +286,7 @@ def generate_voice_design(text, language, voice_description):
 
 
 def generate_voice_clone(voice_mode_radio, clone_ref_audio_drop, clone_ref_text_drop, clone_xvector,  
-        custom_ref_audio_drop, custom_ref_text_drop,target_text, language, model_size):
+        custom_ref_audio_drop, custom_ref_text_drop,custom_xvector,target_text, language, model_size):
 
     if voice_mode_radio == 'predefine':
         audio=clone_ref_audio_drop
@@ -554,7 +554,7 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                 clone_btn.click(
                     generate_voice_clone,
                     inputs=[voice_mode_radio, clone_ref_audio_drop, clone_ref_text_drop, clone_xvector,  
-                            custom_ref_audio_drop, custom_ref_text_drop, custom_xvector , clone_target_text, clone_language, clone_model_size],
+                            custom_ref_audio_drop, custom_ref_text_drop, custom_xvector, clone_target_text, clone_language, clone_model_size],
                     outputs=[clone_audio_out, clone_status],
                 )
 
