@@ -147,7 +147,6 @@ def upload_reference_audio_endpoint(files):
         filename = os.path.basename(file_info)
         safe_filename = sanitize_filename(filename)
         destination_path = os.path.join(ref_path,safe_filename)
-        print('zzzzzzzzzzzzzzzzzzz',destination_path)
         try:
             if destination_path.exists():
                 print(f"File '{safe_filename}' already exists.")
