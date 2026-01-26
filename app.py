@@ -77,11 +77,11 @@ def toggle_voice_audio(selected_file, voice_mode):
     
     return str(file_path)  
     
-def reset_playback_on_mode_change(voice_mode):
+#def reset_playback_on_mode_change(voice_mode):
 
-    global reference_playing_state
-    reference_playing_state = {"is_playing": False, "current_key": None}
-    return "▶️ Play/Stop", "▶️ Play/Stop", gr.update(visible=False)
+#    global reference_playing_state
+#    reference_playing_state = {"is_playing": False, "current_key": None}
+#    return "▶️ Play/Stop", "▶️ Play/Stop", gr.update(visible=False)
 
 def get_model_path(model_type: str, model_size: str) -> str:
     """Get model path based on type and size."""
@@ -392,7 +392,11 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                             inputs=[clone_ref_audio_drop],
                             outputs=[pre_player]
                             )
-
+                        custom_play_btn.click(
+                            fn=lambda file: toggle_voice_audio(file, "custom"),
+                            inputs=[clone_ref_audio_drop],
+                            outputs=[pre_player]
+                            )
                 
                     with gr.Column(scale=2):
                         clone_target_text = gr.Textbox(
