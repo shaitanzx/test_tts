@@ -4,7 +4,6 @@
 #import subprocess
 #subprocess.run('pip install flash-attn==2.7.4.post1', shell=True)
 import os
-import spaces
 import gradio as gr
 import numpy as np
 import torch
@@ -95,8 +94,6 @@ SPEAKERS = [
 ]
 LANGUAGES = ["Auto", "Chinese", "English", "Japanese", "Korean", "French", "German", "Spanish", "Portuguese", "Russian"]
 
-
-@spaces.GPU(duration=60)
 def generate_voice_design(text, language, voice_description):
     """Generate speech using Voice Design model (1.7B only)."""
     if not text or not text.strip():
@@ -118,7 +115,6 @@ def generate_voice_design(text, language, voice_description):
         return None, f"Error: {type(e).__name__}: {e}"
 
 
-@spaces.GPU(duration=60)
 def generate_voice_clone(ref_audio, ref_text, target_text, language, use_xvector_only, model_size):
     """Generate speech using Base (Voice Clone) model."""
     if not target_text or not target_text.strip():
@@ -146,7 +142,6 @@ def generate_voice_clone(ref_audio, ref_text, target_text, language, use_xvector
         return None, f"Error: {type(e).__name__}: {e}"
 
 
-@spaces.GPU(duration=60)
 def generate_custom_voice(text, language, speaker, instruct, model_size):
     """Generate speech using CustomVoice model."""
     if not text or not text.strip():
