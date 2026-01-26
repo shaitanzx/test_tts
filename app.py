@@ -69,12 +69,12 @@ def toggle_voice_audio(selected_file, voice_mode):
     if reference_playing_state["is_playing"] and reference_playing_state["current_key"] == current_key:
         reference_playing_state = {"is_playing": False, "current_key": None}
         gr.Info(f"⏸️ Stopped: {selected_file}")
-        return None
+        return gr.update(visible=True),None,gr.update(visible=False) 
 
     reference_playing_state = {"is_playing": True, "current_key": current_key}
     gr.Info(f"🎵 Playing: {selected_file}")
     
-    return str(file_path)  
+    return gr.update(visible=True),str(file_path),gr.update(visible=False)  
 def sanitize_filename(filename):
     """
     Removes potentially unsafe characters and path components from a filename
@@ -501,7 +501,7 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
 #                        )
 
                         pre_player = gr.Audio(
-                            visible=True,
+                            visible=False,
                             label="",
                             interactive=False,
                             show_label=True,
@@ -511,7 +511,7 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                         ref_play_btn.click(
                             fn=lambda file: toggle_voice_audio(file, "reference"),
                             inputs=[clone_ref_audio_drop],
-                            outputs=[pre_player]
+                            outputs=[pre_player,pre_player,pre_player]
                             )
                         custom_play_btn.click(
                             fn=lambda file: toggle_voice_audio(file, "custom"),
