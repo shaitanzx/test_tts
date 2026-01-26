@@ -82,7 +82,7 @@ def toggle_voice_audio(selected_file, voice_mode):
         gr.update(visible=True),  
         gr.update(value=str(file_path), autoplay=True)  
     )
-def reset_playback_on_mode_change(voice_mode: str) -> Tuple[str, str, Dict]:
+def reset_playback_on_mode_change(voice_mode):
 
     global reference_playing_state
     reference_playing_state = {"is_playing": False, "current_key": None}
