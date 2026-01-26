@@ -62,9 +62,11 @@ def toggle_voice_audio(selected_file, voice_mode):
         base_path = CUSTOM_DIR
     
     file_path = os.path.join(base_path,selected_file)
-    if not file_path.exists():
-        gr.Error(f"❌ File not found: {selected_file}")
-        return None, "▶️ Play/Stop", gr.update(visible=False), gr.update(visible=False)
+    print('aaaaaaaaaaaaaaaa',file_path)
+    
+    #if not file_path.exists():
+    #    gr.Error(f"❌ File not found: {selected_file}")
+    #    return None, "▶️ Play/Stop", gr.update(visible=False), gr.update(visible=False)
     
     current_key = f"{voice_mode}_{selected_file}"
     
