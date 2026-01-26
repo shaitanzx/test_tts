@@ -21,7 +21,7 @@ loaded_models = {}
 
 # Model size options
 MODEL_SIZES = ["0.6B", "1.7B"]
-REFERENCE = sorted([f for f in os.listdir("examples") if f.lower().endswith(('.wav', '.mp3'))])
+REFERENCE = sorted([f for f in os.listdir("reference") if f.lower().endswith(('.wav', '.mp3'))])
 def read_text_for_audio(audio_path):
     """
     Ищет файл с тем же именем, что и audio_path, но с расширением .txt или .lab.
