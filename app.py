@@ -298,7 +298,7 @@ def generate_voice_clone(voice_mode_radio, clone_ref_audio_drop, clone_ref_text_
         ref_text=custom_ref_text_drop
         use_xvector_only=custom_xvector
         path='custom'
-    print='aaaaaaaaaaaaaaaaaaaaaaaaaaaa',os.path.join(ROOT,path,audio)
+    print('aaaaaaaaaaaaaaaaaaaaaaaaaaaa',os.path.join(ROOT,path,audio))
     ref_audio, _ = librosa.load(os.path.join(ROOT,path,audio), sr=None)
     """Generate speech using Base (Voice Clone) model."""
     if not target_text or not target_text.strip():
