@@ -40,9 +40,9 @@ def read_text_for_audio(audio_path):
                 print(f"Ошибка при чтении {text_path}: {e}")
                 return ""
     return ""  # ни один файл не найден
-def select_ref_audio(audio_path):
-    return read_text_for_audio(os.path.join(REF_DIR, audio_path))
-#REFERENCE_TXT = read_text_for_audio(os.path.join(REF_DIR, REFERENCE[0]))
+#def select_ref_audio(audio_path):
+#    return read_text_for_audio(os.path.join(REF_DIR, audio_path))
+REFERENCE_TXT = read_text_for_audio(os.path.join(REF_DIR, REFERENCE[0]))
 def get_model_path(model_type: str, model_size: str) -> str:
     """Get model path based on type and size."""
     return snapshot_download(f"Qwen/Qwen3-TTS-12Hz-{model_size}-{model_type}")
@@ -255,6 +255,25 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
 
             # Tab 2: Voice Clone (Base)
             with gr.Tab("Voice Clone (Base)"):
+                def select_example_audio(audio_file):
+                    if audio_file:
+                        audio_path = os.path.join("reference", audio_file)
+                        base_name = os.path.splitext(audio_file)[0]
+                
+                        text_content = ""
+                        for ext in ['.txt', '.lab']:
+                            text_file = base_name + ext
+                            text_path = os.path.join("examples", text_file)
+                            if os.path.exists(text_path):
+                                try:
+                                    with open(text_path, "r", encoding="utf-8") as f:
+                                        text_content = f.read().strip()
+                                        break
+                                except:
+                                    continue
+                
+                        return text_content
+                    return ""
                 gr.Markdown("### Clone Voice from Reference Audio")
                 with gr.Row():
                     with gr.Column(scale=2):
@@ -266,7 +285,8 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                             )
                         clone_ref_text_drop= gr.Textbox(
                                 label="Reference Text",
-                                lines=1
+                                lines=1,
+                                value=REFERENCE_TXT
                             )
                         clone_ref_audio_drop.change(
                             fn=select_ref_audio,
