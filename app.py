@@ -138,7 +138,7 @@ def upload_reference_audio_endpoint(files):
     ref_path = CUSTOM_DIR
     uploaded_filenames = []
     errors = []
-    
+    print("Files:-------------------------------------", files)
     for file_info in files:
         if not file_info:
             continue
