@@ -39,7 +39,7 @@ def read_text_for_audio(audio_path):
                 return ""
     return ""  # ни один файл не найден
 def select_ref_audio(audio_path):
-    return read_text_for_audio(audio_path
+    return read_text_for_audio(audio_path)
 REFERENCE_TXT = read_text_for_audio(REFERENCE[0])
 def get_model_path(model_type: str, model_size: str) -> str:
     """Get model path based on type and size."""
