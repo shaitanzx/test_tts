@@ -381,7 +381,7 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                             interactive=False,
                             show_label=True,
                             elem_id="reference-audio-player",
-                            autoplay=False  
+                            autoplay=True  
                             )  
                         #reference_audio_trigger = gr.Audio(
                         #    visible=False,
