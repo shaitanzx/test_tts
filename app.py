@@ -51,6 +51,43 @@ def select_ref_audio(audio_path):
     return read_text_for_audio(os.path.join(REF_DIR, audio_path))
 REFERENCE_TXT = read_text_for_audio(os.path.join(REF_DIR, REFERENCE[0]))
 CUSTOM_TXT = read_text_for_audio(os.path.join(CUSTOM_DIR, CUSTOM_VOICE[0]))
+def toggle_voice_audio(selected_file: str, voice_mode: str) -> Tuple[Optional[str], str, Dict, Dict]:
+    global reference_playing_state
+    if not selected_file:
+        gr.Warning("⚠️ Please select a file")
+        return None, "▶️ Play/Stop", gr.update(visible=False), gr.update(visible=False)
+    if voice_mode == "predefined":
+        base_path = get_predefined_voices_path(ensure_absolute=True)
+    else: 
+        base_path = get_reference_audio_path(ensure_absolute=True)
+    
+    file_path = base_path / selected_file
+    if not file_path.exists():
+        gr.Error(f"❌ File not found: {selected_file}")
+        return None, "▶️ Play/Stop", gr.update(visible=False), gr.update(visible=False)
+    
+    current_key = f"{voice_mode}_{selected_file}"
+    
+    if reference_playing_state["is_playing"] and reference_playing_state["current_key"] == current_key:
+        reference_playing_state = {"is_playing": False, "current_key": None}
+        gr.Info(f"⏸️ Stopped: {selected_file}")
+        return None, "▶️ Play/Stop", gr.update(visible=False), gr.update(visible=False)
+
+    reference_playing_state = {"is_playing": True, "current_key": current_key}
+    gr.Info(f"🎵 Playing: {selected_file}")
+    
+    return (
+        str(file_path), 
+        "⏸️ Play/Stop", 
+        gr.update(visible=True),  
+        gr.update(value=str(file_path), autoplay=True)  
+    )
+def reset_playback_on_mode_change(voice_mode: str) -> Tuple[str, str, Dict]:
+
+    global reference_playing_state
+    reference_playing_state = {"is_playing": False, "current_key": None}
+    return "▶️ Play/Stop", "▶️ Play/Stop", gr.update(visible=False)
+
 def get_model_path(model_type: str, model_size: str) -> str:
     """Get model path based on type and size."""
     return snapshot_download(f"Qwen/Qwen3-TTS-12Hz-{model_size}-{model_type}")
@@ -288,7 +325,7 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                                 max_lines=5
                             )
                             clone_xvector = gr.Checkbox(
-                                label="Use x-vector only (No reference text needed, but lower quality)",
+                                label="Use x-vector only (No text needed, but lower quality)",
                                 value=False,
                                 )
 
@@ -303,7 +340,7 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                                 custom_play_btn = gr.Button("▶️ Play/Stop")
                             with gr.Row():
                                 custom_upload_btn = gr.UploadButton("📁 Upload Custom Audio",
-                                    file_types=[".wav", ".mp3"],
+                                    file_types=[".wav", ".mp3", ".txt", ".lab"],
                                     file_count="multiple",
                                     visible=True
                                 )
@@ -315,7 +352,7 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                                 max_lines=5
                             )
                             custom_xvector = gr.Checkbox(
-                                label="Use x-vector only (No reference text needed, but lower quality)",
+                                label="Use x-vector only (No text needed, but lower quality)",
                                 value=False,
                                 )
 
@@ -343,6 +380,40 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
 #                            value=False,
 #                        )
 
+                reference_audio_player = gr.Audio(
+                    visible=False,
+                    label="",
+                    interactive=False,
+                    show_label=False,
+                    elem_id="reference-audio-player",
+                    autoplay=False  
+                    )  
+                reference_audio_trigger = gr.Audio(
+                    visible=False,
+                    elem_id="reference-audio-trigger"
+                    )
+                predefined_play_btn.click(
+                        fn=lambda file: toggle_voice_audio(file, "predefined"),
+                        inputs=[clone_ref_audio_drop],
+                        outputs=[
+                            reference_audio_player,
+                            predefined_play_btn,    
+                            reference_audio_player, 
+                            reference_audio_player   
+                            ])
+                reference_audio_player = gr.Audio(
+                    visible=False,
+                    label="",
+                    interactive=False,
+                    show_label=False,
+                    elem_id="reference-audio-player",
+                    autoplay=False  
+                    )  
+                reference_audio_trigger = gr.Audio(
+                    visible=False,
+                    elem_id="reference-audio-trigger"
+                    )
+                
                     with gr.Column(scale=2):
                         clone_target_text = gr.Textbox(
                             label="Target Text (Text to synthesize with cloned voice)",
