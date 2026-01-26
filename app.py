@@ -37,7 +37,6 @@ def read_text_for_audio(audio_path):
     Возвращает содержимое первого найденного файла или пустую строку.
     """
     base = os.path.splitext(audio_path)[0]
-    print('-----------------',base)
     for ext in ['.txt', '.lab']:
         text_path = base + ext
         if os.path.exists(text_path):
@@ -279,6 +278,8 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                                 value=REFERENCE[0],
                                 interactive=True,
                             )
+                            with gr.Row():    
+                                ref_play_btn = gr.Button("▶️ Play/Stop")
                             clone_ref_text_drop= gr.Textbox(
                                 label="Reference Text",
                                 lines=5,
@@ -286,6 +287,11 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                                 autoscroll=False,
                                 max_lines=5
                             )
+                            clone_xvector = gr.Checkbox(
+                                label="Use x-vector only (No reference text needed, but lower quality)",
+                                value=False,
+                                )
+
                         with gr.Group(visible=False) as custom_group:
                             custom_ref_audio_drop = gr.Dropdown ( 
                                 label="Custom Audio",
@@ -293,6 +299,14 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                                 value=CUSTOM_VOICE[0],
                                 interactive=True
                             )
+                            with gr.Row(): 
+                                custom_play_btn = gr.Button("▶️ Play/Stop")
+                            with gr.Row():
+                                custom_upload_btn = gr.UploadButton("📁 Upload Custom Audio",
+                                    file_types=[".wav", ".mp3"],
+                                    file_count="multiple",
+                                    visible=True
+                                )
                             custom_ref_text_drop= gr.Textbox(
                                 label="Custom Text",
                                 lines=5,
@@ -300,6 +314,11 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                                 autoscroll=False,
                                 max_lines=5
                             )
+                            custom_xvector = gr.Checkbox(
+                                label="Use x-vector only (No reference text needed, but lower quality)",
+                                value=False,
+                                )
+
                         voice_mode_radio.change(
                             fn=change_voice_mode,
                             inputs=[voice_mode_radio],
@@ -310,19 +329,19 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                             inputs=[clone_ref_audio_drop],
                             outputs=[clone_ref_text_drop]
                             )                        
-                        clone_ref_audio = gr.Audio(
-                            label="Reference Audio (Upload a voice sample to clone)",
-                            type="numpy",
-                        )
-                        clone_ref_text = gr.Textbox(
-                            label="Reference Text (Transcript of the reference audio)",
-                            lines=2,
-                            placeholder="Enter the exact text spoken in the reference audio...",
-                        )
-                        clone_xvector = gr.Checkbox(
-                            label="Use x-vector only (No reference text needed, but lower quality)",
-                            value=False,
-                        )
+#                        clone_ref_audio = gr.Audio(
+#                            label="Reference Audio (Upload a voice sample to clone)",
+#                            type="numpy",
+#                        )
+#                        clone_ref_text = gr.Textbox(
+#                            label="Reference Text (Transcript of the reference audio)",
+#                            lines=2,
+#                            placeholder="Enter the exact text spoken in the reference audio...",
+#                        )
+#                        clone_xvector = gr.Checkbox(
+#                            label="Use x-vector only (No reference text needed, but lower quality)",
+#                            value=False,
+#                        )
 
                     with gr.Column(scale=2):
                         clone_target_text = gr.Textbox(
