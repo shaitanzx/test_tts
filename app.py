@@ -368,11 +368,11 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                     clone_audio_out = gr.Audio(label="Generated Audio", type="numpy")
                     clone_status = gr.Textbox(label="Status", lines=2, interactive=False)
 
-                clone_btn.click(
-                    generate_voice_clone,
-                    inputs=[clone_ref_audio, clone_ref_text, clone_target_text, clone_language, clone_xvector, clone_model_size],
-                    outputs=[clone_audio_out, clone_status],
-                )
+#                clone_btn.click(
+#                    generate_voice_clone,
+#                    inputs=[clone_ref_audio, clone_ref_text, clone_target_text, clone_language, clone_xvector, clone_model_size],
+#                    outputs=[clone_audio_out, clone_status],
+#                )
 
             # Tab 3: TTS (CustomVoice)
             with gr.Tab("TTS (CustomVoice)"):
