@@ -125,7 +125,7 @@ def sanitize_filename(filename):
             : max_len - len(ext_part) - 1
         ]  # -1 for the dot if ext exists
         sanitized = name_part + ext_part
-        logger.warning(
+        print(
             f"Original filename '{base_filename}' was truncated to '{sanitized}' due to length limits."
         )
 
@@ -197,8 +197,8 @@ def on_reference_upload(files):
             return gr.update(choices=all_files)
             
     except Exception as e:
-        logger.error(f"Error in reference upload: {e}", exc_info=True)
-        return populateReferenceFiles(), show_notification(f"❌ Upload failed: {str(e)}", "error")
+        print(f"Error in reference upload: {e}", exc_info=True)
+        return sorted([f for f in os.listdir("custom") if f.lower().endswith(('.wav', '.mp3'))]) or [""]
 
 def get_model_path(model_type: str, model_size: str) -> str:
     """Get model path based on type and size."""
