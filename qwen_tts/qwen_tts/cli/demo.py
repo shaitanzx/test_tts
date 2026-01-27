@@ -146,9 +146,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to SSL key file for HTTPS (optional).",
     )
     parser.add_argument(
-        "--ssl-verify",
-        default=None,
-        help="SSL verify setting for Gradio (optional).",
+        "--ssl-verify/--no-ssl-verify",
+        dest="ssl_verify",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Whether to verify SSL certificate (default: enabled).",
     )
 
     # Optional generation args
@@ -617,13 +619,12 @@ def main(argv=None) -> int:
         server_name=args.ip,
         server_port=args.port,
         share=args.share,
+        ssl_verify=True if args.ssl_verify else False,
     )
     if args.ssl_certfile is not None:
         launch_kwargs["ssl_certfile"] = args.ssl_certfile
     if args.ssl_keyfile is not None:
         launch_kwargs["ssl_keyfile"] = args.ssl_keyfile
-    if args.ssl_verify is not None:
-        launch_kwargs["ssl_verify"] = args.ssl_verify
 
     demo.queue(default_concurrency_limit=int(args.concurrency)).launch(**launch_kwargs)
     return 0

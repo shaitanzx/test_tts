@@ -19,7 +19,9 @@ import os
 from dataclasses import dataclass
 from typing import Callable, Optional
 
+import huggingface_hub
 import torch
+from huggingface_hub import snapshot_download
 from librosa.filters import mel as librosa_mel_fn
 from torch import nn
 from torch.nn import functional as F
@@ -27,32 +29,67 @@ from transformers.activations import ACT2FN
 from transformers.cache_utils import Cache, DynamicCache
 from transformers.generation import GenerationMixin
 from transformers.integrations import use_kernel_forward_from_hub
-from transformers.masking_utils import (
-    create_causal_mask,
-    create_sliding_window_causal_mask,
-)
+from transformers.masking_utils import (create_causal_mask,
+                                        create_sliding_window_causal_mask)
 from transformers.modeling_flash_attention_utils import FlashAttentionKwargs
 from transformers.modeling_layers import GradientCheckpointingLayer
-from transformers.modeling_outputs import (
-    BaseModelOutputWithPast,
-    CausalLMOutputWithPast,
-    ModelOutput,
-)
-from transformers.modeling_rope_utils import ROPE_INIT_FUNCTIONS, dynamic_rope_update
-from transformers.modeling_utils import ALL_ATTENTION_FUNCTIONS, PreTrainedModel
+from transformers.modeling_outputs import (BaseModelOutputWithPast,
+                                           CausalLMOutputWithPast, ModelOutput)
+from transformers.modeling_rope_utils import (ROPE_INIT_FUNCTIONS,
+                                              dynamic_rope_update)
+from transformers.modeling_utils import (ALL_ATTENTION_FUNCTIONS,
+                                         PreTrainedModel)
 from transformers.processing_utils import Unpack
 from transformers.utils import can_return_tuple, logging
 from transformers.utils.hub import cached_file
 
 from ...inference.qwen3_tts_tokenizer import Qwen3TTSTokenizer
-from .configuration_qwen3_tts import (
-    Qwen3TTSConfig,
-    Qwen3TTSSpeakerEncoderConfig,
-    Qwen3TTSTalkerCodePredictorConfig,
-    Qwen3TTSTalkerConfig,
-)
+from .configuration_qwen3_tts import (Qwen3TTSConfig,
+                                      Qwen3TTSSpeakerEncoderConfig,
+                                      Qwen3TTSTalkerCodePredictorConfig,
+                                      Qwen3TTSTalkerConfig)
 
 logger = logging.get_logger(__name__)
+
+
+def download_weights_from_hf_specific(
+    model_name_or_path: str,
+    cache_dir: str | None,
+    allow_patterns: list[str],
+    revision: str | None = None,
+    ignore_patterns: str | list[str] | None = None,
+) -> str:
+    """Download model weights from Hugging Face Hub. Users can specify the
+    allow_patterns to download only the necessary weights.
+
+    Args:
+        model_name_or_path (str): The model name or path.
+        cache_dir (Optional[str]): The cache directory to store the model
+            weights. If None, will use HF defaults.
+        allow_patterns (list[str]): The allowed patterns for the
+            weight files. Files matched by any of the patterns will be
+            downloaded.
+        revision (Optional[str]): The revision of the model.
+        ignore_patterns (Optional[Union[str, list[str]]]): The patterns to
+            filter out the weight files. Files matched by any of the patterns
+            will be ignored.
+
+    Returns:
+        str: The path to the downloaded model weights.
+    """
+    assert len(allow_patterns) > 0
+    local_only = huggingface_hub.constants.HF_HUB_OFFLINE
+
+    for allow_pattern in allow_patterns:
+        hf_folder = snapshot_download(
+            model_name_or_path,
+            allow_patterns=allow_pattern,
+            ignore_patterns=ignore_patterns,
+            cache_dir=cache_dir,
+            revision=revision,
+            local_files_only=local_only,
+        )
+    return hf_folder
 
 
 class Res2NetBlock(torch.nn.Module):
@@ -433,7 +470,7 @@ class Qwen3TTSPreTrainedModel(PreTrainedModel):
     supports_gradient_checkpointing = True
     _no_split_modules = ["Qwen3TTSDecoderLayer"]
     _skip_keys_device_placement = "past_key_values"
-    _supports_flash_attn_2 = True
+    _supports_flash_attn = True
     _supports_sdpa = True
     _supports_cache_class = True
     _supports_static_cache = False
@@ -464,8 +501,7 @@ class Qwen3TTSTalkerTextPreTrainedModel(PreTrainedModel):
     supports_gradient_checkpointing = True
     _no_split_modules = []
     _skip_keys_device_placement = ["past_key_values"]
-    _supports_flash_attn_3 = True
-    _supports_flash_attn_2 = True
+    _supports_flash_attn = True
     _supports_sdpa = True
     _supports_flex_attn = True
     _supports_cache_class = True
@@ -1178,6 +1214,8 @@ class Qwen3TTSTalkerCodePredictorModelForConditionalGeneration(Qwen3TTSPreTraine
             output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
         )
 
+        inputs_embeds = self.small_to_mtp_projection(inputs_embeds)
+
         # decoder outputs consists of (dec_features, layer_state, dec_hidden, dec_attn)
         outputs: BaseModelOutputWithPast = self.model(
             input_ids=None,
@@ -1830,6 +1868,11 @@ class Qwen3TTSForConditionalGeneration(Qwen3TTSPreTrainedModel, GenerationMixin)
         weights_only=True,
         **kwargs,
     ):
+        # Hotfix to enable passing the correct attn implementation which is stored in the config but not in kwargs
+        requested_attn_implementation = kwargs.pop("attn_implementation", None)
+        if requested_attn_implementation is None and config and config._attn_implementation:
+            requested_attn_implementation = config._attn_implementation
+
         model = super().from_pretrained(
             pretrained_model_name_or_path,
             *model_args,
@@ -1842,8 +1885,18 @@ class Qwen3TTSForConditionalGeneration(Qwen3TTSPreTrainedModel, GenerationMixin)
             revision=revision,
             use_safetensors=use_safetensors,
             weights_only=weights_only,
+            attn_implementation=requested_attn_implementation,
             **kwargs,
         )
+        if not local_files_only and not os.path.isdir(pretrained_model_name_or_path):
+            download_cache_dir = kwargs.get("cache_dir", cache_dir)
+            download_revision = kwargs.get("revision", revision)
+            download_weights_from_hf_specific(
+                pretrained_model_name_or_path,
+                cache_dir=download_cache_dir,
+                allow_patterns=["speech_tokenizer/*"],
+                revision=download_revision,
+            )
         speech_tokenizer_path = cached_file(
             pretrained_model_name_or_path,
             "speech_tokenizer/config.json",
