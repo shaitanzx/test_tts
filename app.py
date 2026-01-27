@@ -615,4 +615,4 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
 
 if __name__ == "__main__":
     demo = build_ui()
-    demo.launch(share=True)
+    demo.launch(inbrowser=True)
