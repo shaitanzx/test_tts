@@ -13,6 +13,8 @@ import torch
 import shutil
 import librosa
 LIBROSA_AVAILABLE = True
+import parselmouth
+PARSELMOUTH_AVAILABLE = True
 from huggingface_hub import snapshot_download
 import argparse
 import time
