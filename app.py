@@ -203,9 +203,9 @@ def on_reference_upload(files):
                 if default_selection==None:
                     return gr.update(),gr.update()
                 else:
-                    return gr.update(choices=updated_options,value=default_selection),gr.update(value=select_custom_audio(audio_path))
+                    return gr.update(choices=updated_options,value=default_selection),gr.update(value=select_custom_audio(audio_file))
             else:
-                return gr.update(choices=updated_options,value=default_selection),gr.update(value=select_custom_audio(audio_path))
+                return gr.update(choices=updated_options,value=default_selection),gr.update(value=select_custom_audio(default_selectionh))
         else:
             return gr.update(choices=all_files)
             
