@@ -869,7 +869,7 @@ def remove_long_unvoiced_segments(
         print(f"Error during unvoiced segment removal: {e}")
         return audio_array
 
-def postprocess(audio_file,speed_factor_slider, silence_trimming, internal_silence_fix, unvoiced_removal):
+def postprocess(audio_file,speed_factor, silence_trimming, internal_silence_fix, unvoiced_removal):
         speed_factor = float (speed_factor)
         audio_data, engine_output_sample_rate = librosa.load(audio_file, sr=None)
         sr, audio_data = audio_data
