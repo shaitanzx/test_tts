@@ -368,7 +368,7 @@ def generate_custom_voice(text, language, speaker, instruct, model_size):
         return (sr, wavs[0]), "Generation completed successfully!"
     except Exception as e:
         return None, f"Error: {type(e).__name__}: {e}"
-def post_process_gui()
+def post_process_gui():
     with gr.Row():                    
         with gr.Accordion("⚙️ Postprocessing", open=True):
             with gr.Row():
