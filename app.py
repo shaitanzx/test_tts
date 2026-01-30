@@ -301,8 +301,8 @@ def encode_audio(audio_array,sample_rate,output_format,target_sample_rate):
         Bytes object containing the encoded audio, or None if encoding fails.
     """
     if audio_array is None or audio_array.size == 0:
-        logger.warning("encode_audio received empty or None audio array.")
-        return None
+        #logger.warning("encode_audio received empty or None audio array.")
+        return None,"encode_audio received empty or None audio array."
 
     # Ensure audio is float32 for consistent processing.
     if audio_array.dtype != np.float32:
@@ -311,18 +311,18 @@ def encode_audio(audio_array,sample_rate,output_format,target_sample_rate):
             audio_array = audio_array.astype(np.float32) / max_val
         else:  # Fallback for other types, assuming they might be float64 or similar
             audio_array = audio_array.astype(np.float32)
-        logger.debug(f"Converted audio array to float32 for encoding.")
+        print(f"Converted audio array to float32 for encoding.")
 
     # Ensure audio is mono if it's (samples, 1)
     if audio_array.ndim == 2 and audio_array.shape[1] == 1:
         audio_array = audio_array.squeeze(axis=1)
-        logger.debug(
+        print(
             "Squeezed audio array from (samples, 1) to (samples,) for encoding."
         )
     elif (
         audio_array.ndim > 1
     ):  # Multi-channel not directly supported by simple encoding path, attempt to take first channel
-        logger.warning(
+        print(
             f"Multi-channel audio (shape: {audio_array.shape}) provided to encode_audio. Using only the first channel."
         )
         audio_array = audio_array[:, 0]
@@ -334,7 +334,7 @@ def encode_audio(audio_array,sample_rate,output_format,target_sample_rate):
         and LIBROSA_AVAILABLE
     ):
         try:
-            logger.info(
+            print(
                 f"Resampling audio from {sample_rate}Hz to {target_sample_rate}Hz using Librosa."
             )
             audio_array = librosa.resample(
@@ -344,12 +344,12 @@ def encode_audio(audio_array,sample_rate,output_format,target_sample_rate):
                 target_sample_rate  # Update sample_rate for subsequent encoding
             )
         except Exception as e_resample:
-            logger.error(
+            print(
                 f"Error resampling audio to {target_sample_rate}Hz: {e_resample}. Proceeding with original sample rate {sample_rate}.",
                 exc_info=True,
             )
     elif target_sample_rate is not None and target_sample_rate != sample_rate:
-        logger.warning(
+        print(
             f"Librosa not available. Cannot resample audio from {sample_rate}Hz to {target_sample_rate}Hz. "
             f"Proceeding with original sample rate for encoding."
         )
@@ -367,7 +367,7 @@ def encode_audio(audio_array,sample_rate,output_format,target_sample_rate):
 
             if rate_to_write not in OPUS_SUPPORTED_RATES:
                 if LIBROSA_AVAILABLE:
-                    logger.warning(
+                    print(
                         f"Current sample rate {rate_to_write}Hz not directly supported by Opus. "
                         f"Resampling to {TARGET_OPUS_RATE}Hz using Librosa for Opus encoding."
                     )
@@ -376,7 +376,7 @@ def encode_audio(audio_array,sample_rate,output_format,target_sample_rate):
                     )
                     rate_to_write = TARGET_OPUS_RATE
                 else:
-                    logger.error(
+                    print(
                         f"Librosa not available. Cannot resample audio from {rate_to_write}Hz for Opus encoding. "
                         f"Opus encoding may fail or produce poor quality."
                     )
@@ -415,26 +415,26 @@ def encode_audio(audio_array,sample_rate,output_format,target_sample_rate):
             audio_segment.export(output_buffer, format="mp3")
 
         else:
-            logger.error(
-                f"Unsupported output format requested for encoding: {output_format}"
-            )
-            return None
+            #logger.error(
+            #    f"Unsupported output format requested for encoding: {output_format}"
+            #)
+            return None,f"Unsupported output format requested for encoding: {output_format}"
 
         encoded_bytes = output_buffer.getvalue()
         end_time = time.time()
-        logger.info(
+        print(
             f"Encoded {len(encoded_bytes)} bytes to '{output_format}' at {rate_to_write}Hz in {end_time - start_time:.3f} seconds."
         )
         return encoded_bytes
 
     except ImportError as ie_sf:  # Specifically for soundfile import issues
-        logger.critical(
+        print(
             f"The 'soundfile' library or its dependency (libsndfile) is not installed or found. "
             f"Audio encoding/saving is not possible. Please install it. Error: {ie_sf}"
         )
         return None
     except Exception as e:
-        logger.error(f"Error encoding audio to '{output_format}': {e}", exc_info=True)
+        print(f"Error encoding audio to '{output_format}': {e}", exc_info=True)
         return None
 def generate_voice_design(text, language, voice_description):
     """Generate speech using Voice Design model (1.7B only)."""
@@ -481,7 +481,7 @@ def generate_voice_design(text, language, voice_description):
 
 
 
-        return (sr, wavs[0]), "Voice design generation completed successfully!"
+        #return (sr, wavs[0]), "Voice design generation completed successfully!"
     except Exception as e:
         return None, f"Error: {type(e).__name__}: {e}"
 
@@ -613,7 +613,7 @@ def trim_lead_trail_silence(
 
     try:
         if not LIBROSA_AVAILABLE:
-            logger.warning("Librosa not available, skipping silence trimming.")
+            print("Librosa not available, skipping silence trimming.")
             return audio_array
 
         top_db_threshold = abs(silence_threshold_db)
@@ -642,18 +642,18 @@ def trim_lead_trail_silence(
             # For simplicity, if librosa.effects.trim found *any* indices different from [0, original_length],
             # it means some trimming potential was identified.
             if index[0] > 0 or index[1] < original_length:
-                logger.debug(
+                print(
                     f"Silence trimmed: original samples {original_length}, new effective samples {trimmed_length_with_padding} (indices before padding: {index})"
                 )
                 return audio_array[final_start:final_end]
 
-        logger.debug(
+        print(
             "No significant leading/trailing silence found to trim, or result would be empty."
         )
         return audio_array
 
     except Exception as e:
-        logger.error(f"Error during silence trimming: {e}", exc_info=True)
+        print(f"Error during silence trimming: {e}", exc_info=True)
         return audio_array
 
 def fix_internal_silence(
@@ -682,7 +682,7 @@ def fix_internal_silence(
 
     try:
         if not LIBROSA_AVAILABLE:
-            logger.warning("Librosa not available, skipping internal silence fixing.")
+            print("Librosa not available, skipping internal silence fixing.")
             return audio_array
 
         top_db_threshold = abs(silence_threshold_db)
@@ -699,7 +699,7 @@ def fix_internal_silence(
         )
 
         if len(non_silent_intervals) <= 1:
-            logger.debug("No significant internal silences found to fix.")
+            print("No significant internal silences found to fix.")
             return audio_array
 
         fixed_audio_parts = []
@@ -714,7 +714,7 @@ def fix_internal_silence(
                         + max_silence_samples_to_keep
                     ]
                     fixed_audio_parts.append(silence_to_add)
-                    logger.debug(
+                    print(
                         f"Shortened internal silence from {silence_duration_samples} to {max_silence_samples_to_keep} samples."
                     )
                 else:
@@ -746,7 +746,7 @@ def fix_internal_silence(
                             + max_silence_samples_to_keep
                         ]
                     )
-                    logger.debug(
+                    print(
                         f"Shortened trailing silence from {silence_duration_samples} to {max_silence_samples_to_keep} samples."
                     )
                 else:
@@ -761,7 +761,7 @@ def fix_internal_silence(
         return np.concatenate(fixed_audio_parts)
 
     except Exception as e:
-        logger.error(f"Error during internal silence fixing: {e}", exc_info=True)
+        print(f"Error during internal silence fixing: {e}", exc_info=True)
         return audio_array
 
 def remove_long_unvoiced_segments(
@@ -786,7 +786,7 @@ def remove_long_unvoiced_segments(
         NumPy audio array with long unvoiced segments removed. Original if Parselmouth not available or on error.
     """
     if not PARSELMOUTH_AVAILABLE:
-        logger.warning("Parselmouth not available, skipping unvoiced segment removal.")
+        print("Parselmouth not available, skipping unvoiced segment removal.")
         return audio_array
     if audio_array is None or audio_array.size == 0:
         return audio_array
@@ -841,7 +841,7 @@ def remove_long_unvoiced_segments(
                     current_segment_start_sample = segment_end_sample
                 else:
                     
-                    logger.debug(
+                    print(
                         f"Removing long unvoiced segment from {segment_start_time:.2f}s to {segment_end_time:.2f}s."
                     )
                     
@@ -857,7 +857,7 @@ def remove_long_unvoiced_segments(
             segments_to_keep.append(audio_array[current_segment_start_sample:])
 
         if not segments_to_keep:
-            logger.warning(
+            print(
                 "Unvoiced segment removal resulted in empty audio; returning original."
             )
             return audio_array
@@ -865,7 +865,7 @@ def remove_long_unvoiced_segments(
         return np.concatenate(segments_to_keep)
 
     except Exception as e:
-        logger.error(f"Error during unvoiced segment removal: {e}", exc_info=True)
+        print(f"Error during unvoiced segment removal: {e}", exc_info=True)
         return audio_array
 
 def apply_speed_factor(
