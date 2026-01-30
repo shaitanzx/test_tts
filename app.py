@@ -859,7 +859,7 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                     outputs=[design_audio_out, design_status]) \
                     .then(lambda: (gr.update(interactive=True)),outputs=[design_btn])
                 post_btn.click(lambda: (gr.update(interactive=False)),outputs=[post_btn]) \
-                    .then(post_processing,inputs=[design_audio_out,speed_factor_slider, silence_trimming, internal_silence_fix, unvoiced_removal],outputs=[post_output]) \
+                    .then(postprocess,inputs=[design_audio_out,speed_factor_slider, silence_trimming, internal_silence_fix, unvoiced_removal],outputs=[post_output]) \
                     .then(lambda: (gr.update(interactive=True)),outputs=[post_btn])
             # Tab 2: Voice Clone (Base)
             with gr.Tab("Voice Clone (Base)"):
