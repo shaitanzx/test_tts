@@ -28,9 +28,11 @@ reference_playing_state = {"is_playing": False, "current_file": None}
 MODEL_SIZES = ["0.6B", "1.7B"]
 REFERENCE = sorted([f for f in os.listdir("reference") if f.lower().endswith(('.wav', '.mp3'))])
 REF_DIR = os.path.join(ROOT, "reference")
-os.makedirs( os.path.join(ROOT, "custom"), exist_ok=True)
+os.makedirs(os.path.join(ROOT, "custom"), exist_ok=True)
 CUSTOM_VOICE = sorted([f for f in os.listdir("custom") if f.lower().endswith(('.wav', '.mp3'))]) or [""]
 CUSTOM_DIR = os.path.join(ROOT, "custom")
+OUTPUT_DIR = os.path.join(ROOT, "output")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 def change_voice_mode(voice_mode):
     return (
         gr.update(visible=(voice_mode == "predefined")),
@@ -282,7 +284,161 @@ SPEAKERS = [
     "Aiden", "Dylan", "Eric", "Ono_anna", "Ryan", "Serena", "Sohee", "Uncle_fu", "Vivian"
 ]
 LANGUAGES = ["Auto", "Chinese", "English", "Japanese", "Korean", "French", "German", "Spanish", "Portuguese", "Russian"]
+def encode_audio(
+    audio_array: np.ndarray,
+    sample_rate: int,
+    output_format: str = "opus",
+    target_sample_rate: Optional[int] = None,
+) -> Optional[bytes]:
+    """
+    Encodes a NumPy audio array into the specified format (Opus or WAV) in memory.
+    Can resample the audio to a target sample rate before encoding if specified.
 
+    Args:
+        audio_array: NumPy array containing audio data (expected as float32, range [-1, 1]).
+        sample_rate: Sample rate of the input audio data.
+        output_format: Desired output format ('opus', 'wav' or 'mp3').
+        target_sample_rate: Optional target sample rate to resample to before encoding.
+
+    Returns:
+        Bytes object containing the encoded audio, or None if encoding fails.
+    """
+    if audio_array is None or audio_array.size == 0:
+        logger.warning("encode_audio received empty or None audio array.")
+        return None
+
+    # Ensure audio is float32 for consistent processing.
+    if audio_array.dtype != np.float32:
+        if np.issubdtype(audio_array.dtype, np.integer):
+            max_val = np.iinfo(audio_array.dtype).max
+            audio_array = audio_array.astype(np.float32) / max_val
+        else:  # Fallback for other types, assuming they might be float64 or similar
+            audio_array = audio_array.astype(np.float32)
+        logger.debug(f"Converted audio array to float32 for encoding.")
+
+    # Ensure audio is mono if it's (samples, 1)
+    if audio_array.ndim == 2 and audio_array.shape[1] == 1:
+        audio_array = audio_array.squeeze(axis=1)
+        logger.debug(
+            "Squeezed audio array from (samples, 1) to (samples,) for encoding."
+        )
+    elif (
+        audio_array.ndim > 1
+    ):  # Multi-channel not directly supported by simple encoding path, attempt to take first channel
+        logger.warning(
+            f"Multi-channel audio (shape: {audio_array.shape}) provided to encode_audio. Using only the first channel."
+        )
+        audio_array = audio_array[:, 0]
+
+    # Resample if target_sample_rate is provided and different from current sample_rate
+    if (
+        target_sample_rate is not None
+        and target_sample_rate != sample_rate
+        and LIBROSA_AVAILABLE
+    ):
+        try:
+            logger.info(
+                f"Resampling audio from {sample_rate}Hz to {target_sample_rate}Hz using Librosa."
+            )
+            audio_array = librosa.resample(
+                y=audio_array, orig_sr=sample_rate, target_sr=target_sample_rate
+            )
+            sample_rate = (
+                target_sample_rate  # Update sample_rate for subsequent encoding
+            )
+        except Exception as e_resample:
+            logger.error(
+                f"Error resampling audio to {target_sample_rate}Hz: {e_resample}. Proceeding with original sample rate {sample_rate}.",
+                exc_info=True,
+            )
+    elif target_sample_rate is not None and target_sample_rate != sample_rate:
+        logger.warning(
+            f"Librosa not available. Cannot resample audio from {sample_rate}Hz to {target_sample_rate}Hz. "
+            f"Proceeding with original sample rate for encoding."
+        )
+
+    start_time = time.time()
+    output_buffer = io.BytesIO()
+
+    try:
+        audio_to_write = audio_array
+        rate_to_write = sample_rate
+
+        if output_format == "opus":
+            OPUS_SUPPORTED_RATES = {8000, 12000, 16000, 24000, 48000}
+            TARGET_OPUS_RATE = 48000  # Preferred Opus rate.
+
+            if rate_to_write not in OPUS_SUPPORTED_RATES:
+                if LIBROSA_AVAILABLE:
+                    logger.warning(
+                        f"Current sample rate {rate_to_write}Hz not directly supported by Opus. "
+                        f"Resampling to {TARGET_OPUS_RATE}Hz using Librosa for Opus encoding."
+                    )
+                    audio_to_write = librosa.resample(
+                        y=audio_array, orig_sr=rate_to_write, target_sr=TARGET_OPUS_RATE
+                    )
+                    rate_to_write = TARGET_OPUS_RATE
+                else:
+                    logger.error(
+                        f"Librosa not available. Cannot resample audio from {rate_to_write}Hz for Opus encoding. "
+                        f"Opus encoding may fail or produce poor quality."
+                    )
+                    # Proceed with current rate, soundfile might handle it or fail.
+            sf.write(
+                output_buffer,
+                audio_to_write,
+                rate_to_write,
+                format="ogg",
+                subtype="opus",
+            )
+
+        elif output_format == "wav":
+            # WAV typically uses int16 for broader compatibility.
+            # Clip audio to [-1.0, 1.0] before converting to int16 to prevent overflow.
+            audio_clipped = np.clip(audio_array, -1.0, 1.0)
+            audio_int16 = (audio_clipped * 32767).astype(np.int16)
+            audio_to_write = audio_int16  # Use the int16 version for WAV
+            sf.write(
+                output_buffer,
+                audio_to_write,
+                rate_to_write,
+                format="wav",
+                subtype="pcm_16",
+            )
+
+        elif output_format == "mp3":
+            audio_clipped = np.clip(audio_array, -1.0, 1.0)
+            audio_int16 = (audio_clipped * 32767).astype(np.int16)
+            audio_segment = AudioSegment(
+            audio_int16.tobytes(),
+            frame_rate=sample_rate,
+            sample_width=2,
+            channels=1,
+            )
+            audio_segment.export(output_buffer, format="mp3")
+
+        else:
+            logger.error(
+                f"Unsupported output format requested for encoding: {output_format}"
+            )
+            return None
+
+        encoded_bytes = output_buffer.getvalue()
+        end_time = time.time()
+        logger.info(
+            f"Encoded {len(encoded_bytes)} bytes to '{output_format}' at {rate_to_write}Hz in {end_time - start_time:.3f} seconds."
+        )
+        return encoded_bytes
+
+    except ImportError as ie_sf:  # Specifically for soundfile import issues
+        logger.critical(
+            f"The 'soundfile' library or its dependency (libsndfile) is not installed or found. "
+            f"Audio encoding/saving is not possible. Please install it. Error: {ie_sf}"
+        )
+        return None
+    except Exception as e:
+        logger.error(f"Error encoding audio to '{output_format}': {e}", exc_info=True)
+        return None
 def generate_voice_design(text, language, voice_description):
     """Generate speech using Voice Design model (1.7B only)."""
     if not text or not text.strip():
@@ -299,6 +455,35 @@ def generate_voice_design(text, language, voice_description):
             non_streaming_mode=True,
             max_new_tokens=2048,
         )
+
+        encoded_audio_bytes = encode_audio(
+            audio_array=wavs[0],
+            sample_rate=sr,
+            output_format="wav",
+            target_sample_rate=sr,  
+            )
+        
+        if encoded_audio_bytes is None:
+            return None, "Failed to encode audio to requested format."
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+        
+        
+        timestamp_str = time.strftime("%Y%m%d_%H%M%S")
+        suggested_filename_base = f"qwen3_output_{timestamp_str}"
+        file_name = f"{suggested_filename_base}.{"wav"}")
+        file_path = OUTPUT_DIR / file_name
+        
+        with open(file_path, "wb") as f:
+            f.write(encoded_audio_bytes)
+        
+        generation_time = time.time() - start_time
+        
+        return str(file_path), f"✅ Audio generated successfully in {generation_time:.2f}s"
+       
+
+
+
+
         return (sr, wavs[0]), "Voice design generation completed successfully!"
     except Exception as e:
         return None, f"Error: {type(e).__name__}: {e}"
@@ -848,7 +1033,8 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                         
 
                     with gr.Column(scale=2):
-                        design_audio_out = gr.Audio(label="Generated Audio", type="numpy")
+                        #design_audio_out = gr.Audio(label="Generated Audio", type="numpy")
+                        design_audio_out = gr.Audio(label="Generated Audio", interactive=True,visible=True,show_download_button=True)
                         design_status = gr.Textbox(label="Status", lines=2, interactive=False)
                         design_btn = gr.Button("Generate with Custom Voice", variant="primary")
                 post_btn, post_output, speed_factor_slider, silence_trimming, internal_silence_fix, unvoiced_removal = post_process_gui()               
