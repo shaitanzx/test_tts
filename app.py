@@ -288,8 +288,7 @@ def encode_audio(
     audio_array: np.ndarray,
     sample_rate: int,
     output_format: str = "opus",
-    target_sample_rate: Optional[int] = None,
-) -> Optional[bytes]:
+    target_sample_rate: int):
     """
     Encodes a NumPy audio array into the specified format (Opus or WAV) in memory.
     Can resample the audio to a target sample rate before encoding if specified.
