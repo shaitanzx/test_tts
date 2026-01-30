@@ -182,12 +182,30 @@ def on_reference_upload(files):
         uploaded_files = result.get("uploaded_files", [])
         print('---------------all files',all_files)
         print('---------------uploaded_files',uploaded_files)
+        updated_options = sorted([f for f in os.listdir("custom") if f.lower().endswith(('.wav', '.mp3'))])
+        default_selection = uploaded_files[0] if uploaded_files else "none"
+        text=None
         #print('---------------default_selection',default_selection)
         if uploaded_files:
-            default_selection = uploaded_files[0] if uploaded_files else "none"
-            updated_options = all_files
+            for file in reversed(uploaded_files):
+                if file.lower().endswith(('.wav', '.mp3')):
+                    default_selection = file
+                    break
 
-            return gr.update(choices=updated_options,value=default_selection)
+            if not default_selection:
+                base_name = os.path.splitext(uploaded_files[-1])[0]  # Убираем расширение
+                # Ищем файл с тем же именем, но с расширением .wav или .mp3
+                for ext in ('.wav', '.mp3'):
+                    audio_file = f"{base_name}{ext}"
+                    if audio_file in all_files:
+                        default_selection = audio_file
+                        break
+                if default_selection==None:
+                    return gr.update(),gr.update()
+                else:
+                    return gr.update(choices=updated_options,value=default_selection),gr.update(value=select_custom_audio(audio_path))
+            else:
+                return gr.update(choices=updated_options,value=default_selection),gr.update(value=select_custom_audio(audio_path))
         else:
             return gr.update(choices=all_files)
             
@@ -526,7 +544,7 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                         custom_upload_btn.upload(
                             fn=on_reference_upload,
                             inputs=[custom_upload_btn],
-                            outputs=[custom_ref_audio_drop]
+                            outputs=[custom_ref_audio_drop,clone_ref_text_drop]
                             )
                         custom_ref_audio_drop.change(
                             fn=select_custom_audio,
