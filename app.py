@@ -470,7 +470,7 @@ def generate_voice_design(text, language, voice_description):
         
         
         timestamp_str = time.strftime("%Y%m%d_%H%M%S")
-        suggested_filename_base = f"qwen3_output_{timestamp_str}"
+        suggested_filename_base = f"qwen3_VD_{timestamp_str}"
         file_name = f"{suggested_filename_base}.wav"
         file_path = os.path.join(OUTPUT_DIR, file_name)
         
@@ -527,7 +527,30 @@ def generate_voice_clone(voice_mode_radio, clone_ref_audio_drop, clone_ref_text_
             x_vector_only_mode=use_xvector_only,
             max_new_tokens=2048,
         )
-        return (sr, wavs[0]), "Voice clone generation completed successfully!"
+        encoded_audio_bytes = encode_audio(
+            audio_array=wavs[0],
+            sample_rate=sr,
+            output_format="wav",
+            target_sample_rate=sr,  
+            )
+        
+        if encoded_audio_bytes is None:
+            return None, "Failed to encode audio to requested format."
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+        
+        
+        timestamp_str = time.strftime("%Y%m%d_%H%M%S")
+        suggested_filename_base = f"qwen3_base_{timestamp_str}"
+        file_name = f"{suggested_filename_base}.wav"
+        file_path = os.path.join(OUTPUT_DIR, file_name)
+        
+        with open(file_path, "wb") as f:
+            f.write(encoded_audio_bytes)
+        
+        generation_time = time.time() - start_time
+        
+        return str(file_path), f"✅ Audio generated successfully in {generation_time:.2f}s"
+        #return (sr, wavs[0]), "Voice clone generation completed successfully!"
     except Exception as e:
         return None, f"Error: {type(e).__name__}: {e}"
 
@@ -755,7 +778,6 @@ def fix_internal_silence(
                     )
                 else:
                     fixed_audio_parts.append(trailing_segment)
-        print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
         if not fixed_audio_parts:  # Should not happen if non_silent_intervals > 1
             logger.warning(
                 "Internal silence fixing resulted in no audio parts; returning original."
@@ -1115,19 +1137,24 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                                 value="1.7B",
                                 interactive=True,
                             )
+                        clone_status = gr.Textbox(label="Status", lines=2, interactive=False)
                         clone_btn = gr.Button("Clone & Generate", variant="primary")
 
                 with gr.Row():
-                    clone_audio_out = gr.Audio(label="Generated Audio", type="numpy")
-                    clone_status = gr.Textbox(label="Status", lines=2, interactive=False)
+                    #clone_audio_out = gr.Audio(label="Generated Audio", type="numpy")
+                    clone_audio_out = gr.Audio(label="Generated Audio", type="filepath",interactive=True,visible=False,show_download_button=True)
+                    
                 post_btn_vc, post_output_vc, speed_factor_slider_vc, silence_trimming_vc, internal_silence_fix_vc, unvoiced_removal_vc = post_process_gui()    
-                clone_btn.click(
+                clone_btn.click(lambda: (gr.update(interactive=False)),outputs=[clone_btn]) \
+                    .then(
                     generate_voice_clone,
                     inputs=[voice_mode_radio, clone_ref_audio_drop, clone_ref_text_drop, clone_xvector,  
                             custom_ref_audio_drop, custom_ref_text_drop, custom_xvector, clone_target_text, clone_language, clone_model_size],
-                    outputs=[clone_audio_out, clone_status],
-                )
-
+                    outputs=[clone_audio_out, clone_status]) \
+                    .then.then(lambda: (gr.update(interactive=True),gr.update(visible=True)),outputs=[clone_btn,clone_audio_out])
+                post_btn_vc.click(lambda: (gr.update(interactive=False)),outputs=[post_btn_vc]) \
+                    .then(postprocess,inputs=[clone_audio_out,speed_factor_slider_vc, silence_trimming_vc, internal_silence_fix_vc, unvoiced_removal_vc],outputs=[post_output_vc]) \
+                    .then(lambda: (gr.update(interactive=True),gr.update(visible=True)),outputs=[post_btn_vc,post_output_vc])
             # Tab 3: TTS (CustomVoice)
             with gr.Tab("TTS (CustomVoice)"):
                 gr.Markdown("### Text-to-Speech with Predefined Speakers")
