@@ -613,8 +613,15 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
         
 
     return demo
+def parse_args():
+    parser = argparse.ArgumentParser(description="Chatterbox TTS Server")
+    parser.add_argument("--share", action="store_true", 
+                       help="Enable share link for Gradio")
 
+    
+    return parser.parse_args()
 
 if __name__ == "__main__":
+    args = parse_args()
     demo = build_ui()
-    demo.launch(inbrowser=True,share=True)
+    demo.launch(share=args.share,inbrowser=not args.share)
