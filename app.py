@@ -376,7 +376,7 @@ def post_process_gui():
                     label="Postprocessed Audio",
                     type="filepath",
                     interactive=True,
-                    visible=True,
+                    visible=False,
                     show_download_button=True
                     )
             with gr.Row():
