@@ -755,7 +755,7 @@ def fix_internal_silence(
                     )
                 else:
                     fixed_audio_parts.append(trailing_segment)
-
+        print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
         if not fixed_audio_parts:  # Should not happen if non_silent_intervals > 1
             logger.warning(
                 "Internal silence fixing resulted in no audio parts; returning original."
