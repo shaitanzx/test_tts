@@ -474,7 +474,7 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                     generate_voice_design,
                     inputs=[design_text, design_language, design_instruct],
                     outputs=[design_audio_out, design_status]) \
-                    .then(lambda: (gr.update(interactive=True)),outputs=[design_btn])
+                    .then(lambda: (gr.update(interactive=True),gr.update(interactive=True)),outputs=[design_btn,post_btn])
             # Tab 2: Voice Clone (Base)
             with gr.Tab("Voice Clone (Base)"):
                 gr.Markdown("### Clone Voice from Reference Audio")
