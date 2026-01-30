@@ -565,6 +565,7 @@ def generate_custom_voice(text, language, speaker, instruct, model_size):
 
     try:
         tts = get_model("CustomVoice", model_size)
+        start_time = time.time()
         wavs, sr = tts.generate_custom_voice(
             text=text.strip(),
             language=language,
@@ -573,7 +574,30 @@ def generate_custom_voice(text, language, speaker, instruct, model_size):
             non_streaming_mode=True,
             max_new_tokens=2048,
         )
-        return (sr, wavs[0]), "Generation completed successfully!"
+        encoded_audio_bytes = encode_audio(
+            audio_array=wavs[0],
+            sample_rate=sr,
+            output_format="wav",
+            target_sample_rate=sr,  
+            )
+        
+        if encoded_audio_bytes is None:
+            return None, "Failed to encode audio to requested format."
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+        
+        
+        timestamp_str = time.strftime("%Y%m%d_%H%M%S")
+        suggested_filename_base = f"qwen3_tts_{timestamp_str}"
+        file_name = f"{suggested_filename_base}.wav"
+        file_path = os.path.join(OUTPUT_DIR, file_name)
+        
+        with open(file_path, "wb") as f:
+            f.write(encoded_audio_bytes)
+        
+        generation_time = time.time() - start_time
+        
+        return str(file_path), f"✅ Audio generated successfully in {generation_time:.2f}s"
+        #return (sr, wavs[0]), "Voice clone generation completed successfully!"
     except Exception as e:
         return None, f"Error: {type(e).__name__}: {e}"
 def post_process_gui():
@@ -1195,15 +1219,19 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                         
 
                     with gr.Column(scale=2):
-                        tts_audio_out = gr.Audio(label="Generated Audio", type="numpy")
+                        tts_audio_out = gr.Audio(label="Generated Audio", type="filepath",interactive=True,visible=False,show_download_button=True)
                         tts_status = gr.Textbox(label="Status", lines=2, interactive=False)
                         tts_btn = gr.Button("Generate Speech", variant="primary")
                 post_btn_tts, post_output_tts, speed_factor_slider_tts, silence_trimming_tts, internal_silence_fix_tts, unvoiced_removal_tts = post_process_gui()    
-                tts_btn.click(
+                post_btn_tts.click(lambda: (gr.update(interactive=False)),outputs=[post_btn_tts]) \
+                    .then(postprocess,inputs=[tts_audio_out,speed_factor_slider_tts, silence_trimming_tts, internal_silence_fix_tts, unvoiced_removal_tts],outputs=[post_output_tts]) \
+                    .then(lambda: (gr.update(interactive=True),gr.update(visible=True)),outputs=[post_btn_tts,post_output_tts])
+                tts_btn.click(lambda: (gr.update(interactive=False)),outputs=[tts_btn]) \
+                    .then(
                     generate_custom_voice,
                     inputs=[tts_text, tts_language, tts_speaker, tts_instruct, tts_model_size],
-                    outputs=[tts_audio_out, tts_status],
-                )
+                    outputs=[tts_audio_out, tts_status]) \
+                    .then(lambda: (gr.update(interactive=True),gr.update(visible=True)),outputs=[tts_btn,tts_audio_out])
 
         
 
