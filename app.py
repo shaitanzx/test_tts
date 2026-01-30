@@ -406,7 +406,89 @@ def post_process_gui():
                     )
             with gr.Row():
                  post_btn = gr.Button("🎵 PostProcessing",visible=True,interactive=True)
-    return post_btn, post_output, speed_factor_slider, silence_trimming, internal_silence_fix, unvoiced_removal     
+    return post_btn, post_output, speed_factor_slider, silence_trimming, internal_silence_fix, unvoiced_removal  
+def postprocess(audio_file,speed_factor_slider, silence_trimming, internal_silence_fix, unvoiced_removal):
+        speed_factor = float (speed_factor)
+        audio_data, engine_output_sample_rate = librosa.load(audio_file, sr=None)
+        config_audio_output_sample_rate = int (config_audio_output_sample_rate)
+        if silence_trimming:
+            audio_data = utils.trim_lead_trail_silence(
+                audio_data, engine_output_sample_rate
+            )
+        
+        if internal_silence_fix:
+            audio_data = utils.fix_internal_silence(
+                audio_data, engine_output_sample_rate
+            )
+
+        if unvoiced_removal:
+            audio_data = utils.remove_long_unvoiced_segments(
+                audio_data, engine_output_sample_rate
+            )
+
+        if speed_factor != 1.0:
+            output_format_str = output_format if output_format else get_audio_output_format()
+            if config_audio_output_sample_rate is not None:
+                final_output_sample_rate = config_audio_output_sample_rate
+            else:
+                final_output_sample_rate = get_audio_sample_rate()
+            
+            encoded_audio_bytes = utils.encode_audio(
+                audio_array=audio_data,
+                sample_rate=engine_output_sample_rate,
+                output_format=output_format_str,
+                target_sample_rate=final_output_sample_rate,
+                )
+        
+            if encoded_audio_bytes is None:
+                return None, None, gr.update (visible=True)
+        
+            outputs_dir = get_output_path(ensure_absolute=True)
+            outputs_dir.mkdir(parents=True, exist_ok=True)
+    
+            timestamp_str = time.strftime("%Y%m%d_%H%M%S")
+            suggested_filename_base = audio_name or f"tts_output_{timestamp_str}"
+            file_name_temp = utils.sanitize_filename(f"{suggested_filename_base}_temp.{output_format_str}")
+            file_name = utils.sanitize_filename(f"{suggested_filename_base}_post.{output_format_str}")
+            file_path_temp = outputs_dir / file_name_temp
+            file_path = outputs_dir / file_name
+
+            with open(file_path_temp, "wb") as f:
+                f.write(encoded_audio_bytes)
+
+            os.system(f"ffmpeg -i {str(file_path_temp)} -filter:a atempo=\"{str(speed_factor)}\" {str(file_path)}")
+
+            os.remove(file_path_temp)
+            return file_path
+        else:
+            output_format_str = output_format if output_format else get_audio_output_format()
+            if config_audio_output_sample_rate is not None:
+                final_output_sample_rate = config_audio_output_sample_rate
+            else:
+                final_output_sample_rate = get_audio_sample_rate()
+    
+            encoded_audio_bytes = utils.encode_audio(
+                audio_array=audio_data,
+                sample_rate=engine_output_sample_rate,
+                output_format=output_format_str,
+                target_sample_rate=final_output_sample_rate,
+                )
+        
+            if encoded_audio_bytes is None:
+                return None, None, gr.update (visible=True)
+        
+            outputs_dir = get_output_path(ensure_absolute=True)
+            outputs_dir.mkdir(parents=True, exist_ok=True)
+    
+            timestamp_str = time.strftime("%Y%m%d_%H%M%S")
+            suggested_filename_base = audio_name or f"tts_output_{timestamp_str}"
+            file_name = utils.sanitize_filename(f"{suggested_filename_base}_post.{output_format_str}")
+            file_path = outputs_dir / file_name
+        
+            with open(file_path, "wb") as f:
+                f.write(encoded_audio_bytes)
+
+        return file_path   
 # Build Gradio UI
 def build_ui():
     theme = gr.themes.Soft(
@@ -475,6 +557,9 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                     inputs=[design_text, design_language, design_instruct],
                     outputs=[design_audio_out, design_status]) \
                     .then(lambda: (gr.update(interactive=True)),outputs=[design_btn])
+                post_btn.click(lambda: (gr.update(interactive=False)),outputs=[post_btn]) \
+                    .then(post_processing,inputs=[design_audio_out,speed_factor_slider, silence_trimming, internal_silence_fix, unvoiced_removal],outputs=[post_output]) \
+                    .then(lambda: (gr.update(interactive=True)),outputs=[post_btn])
             # Tab 2: Voice Clone (Base)
             with gr.Tab("Voice Clone (Base)"):
                 gr.Markdown("### Clone Voice from Reference Audio")
