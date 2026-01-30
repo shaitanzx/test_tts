@@ -11,7 +11,8 @@ import gradio as gr
 import numpy as np
 import torch
 import shutil
-import librosa
+import 
+LIBROSA_AVAILABLE = True
 from huggingface_hub import snapshot_download
 import argparse
 import time
