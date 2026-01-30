@@ -368,8 +368,42 @@ def generate_custom_voice(text, language, speaker, instruct, model_size):
         return (sr, wavs[0]), "Generation completed successfully!"
     except Exception as e:
         return None, f"Error: {type(e).__name__}: {e}"
-
-
+def post_process_gui()
+    with gr.Row():                    
+        with gr.Accordion("⚙️ Postprocessing", open=True):
+            with gr.Row():
+                post_output = gr.Audio(
+                    label="Postprocessed Audio",
+                    type="filepath",
+                    interactive=True,
+                    visible=False,
+                    show_download_button=True
+                    )
+            with gr.Row():
+                speed_factor_slider = gr.Slider(
+                    minimum=0.25,
+                    maximum=4.0,
+                    value=1.0,
+                    step=0.05,
+                    label="Speed Factor"
+                    )
+            with gr.Row():
+                silence_trimming = gr.Checkbox(
+                    label="Silence Trimming",
+                    value=False,
+                    interactive=True
+                    )
+                internal_silence_fix = gr.Checkbox(
+                    label="Internal Silence Fix",
+                    value=False,
+                    interactive=True
+                    )
+                unvoiced_removal = gr.Checkbox(
+                    label="Unvoiced Removal",
+                    value=False,
+                    interactive=True
+                    )
+    return post_output, speed_factor_slider, silence_trimming, internal_silence_fix, unvoiced_removal     
 # Build Gradio UI
 def build_ui():
     theme = gr.themes.Soft(
@@ -430,12 +464,12 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                     with gr.Column(scale=2):
                         design_audio_out = gr.Audio(label="Generated Audio", type="numpy")
                         design_status = gr.Textbox(label="Status", lines=2, interactive=False)
-
-                design_btn.click(
-                    generate_voice_design,
-                    inputs=[design_text, design_language, design_instruct],
-                    outputs=[design_audio_out, design_status],
-                )
+                        design_btn.click(
+                            generate_voice_design,
+                            inputs=[design_text, design_language, design_instruct],
+                            outputs=[design_audio_out, design_status],
+                        )
+                    post_output, speed_factor_slider, silence_trimming, internal_silence_fix, unvoiced_removal = post_process_gui()               
 
             # Tab 2: Voice Clone (Base)
             with gr.Tab("Voice Clone (Base)"):
