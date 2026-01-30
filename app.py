@@ -404,7 +404,7 @@ def post_process_gui():
                     interactive=True
                     )
     with gr.Row():
-        post_btn = gr.Button("🎵 PostProcessing",visible=False)
+        post_btn = gr.Button("🎵 PostProcessing",visible=True)
     return post_btn, post_output, speed_factor_slider, silence_trimming, internal_silence_fix, unvoiced_removal     
 # Build Gradio UI
 def build_ui():
@@ -467,8 +467,7 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                         design_audio_out = gr.Audio(label="Generated Audio", type="numpy")
                         design_status = gr.Textbox(label="Status", lines=2, interactive=False)
                         design_btn = gr.Button("Generate with Custom Voice", variant="primary")
-                with gr.Row():
-                    post_btn, post_output, speed_factor_slider, silence_trimming, internal_silence_fix, unvoiced_removal = post_process_gui()               
+                post_btn, post_output, speed_factor_slider, silence_trimming, internal_silence_fix, unvoiced_removal = post_process_gui()               
                 design_btn.click(
                     generate_voice_design,
                     inputs=[design_text, design_language, design_instruct],
