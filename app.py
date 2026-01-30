@@ -464,11 +464,13 @@ Built with [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) by Alibaba Qwen Team
                     with gr.Column(scale=2):
                         design_audio_out = gr.Audio(label="Generated Audio", type="numpy")
                         design_status = gr.Textbox(label="Status", lines=2, interactive=False)
-                        design_btn.click(
+                        with gr.Row():
+                            design_btn.click(
                             generate_voice_design,
                             inputs=[design_text, design_language, design_instruct],
                             outputs=[design_audio_out, design_status],
                         )
+                with gr.Row():
                     post_output, speed_factor_slider, silence_trimming, internal_silence_fix, unvoiced_removal = post_process_gui()               
 
             # Tab 2: Voice Clone (Base)
