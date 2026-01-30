@@ -167,7 +167,7 @@ def upload_reference_audio_endpoint(files):
         except Exception as e:
             errors.append({"filename": filename, "error": str(e)})
     
-    all_files = sorted([f for f in os.listdir("custom") if f.lower().endswith(('.wav', '.mp3'))]) or [""]
+    all_files = sorted([f for f in os.listdir("custom") if f.lower().endswith(('.wav', '.mp3','.lab', '.txt'))]) or [""]
     return {
         "message": f"Processed {len(files)} file(s)",
         "uploaded_files": uploaded_filenames,
@@ -180,13 +180,13 @@ def on_reference_upload(files):
         result =  upload_reference_audio_endpoint(files)
         all_files = result.get("all_reference_files", [])
         uploaded_files = result.get("uploaded_files", [])
-        
+        print('---------------all files',all_files)
+        print('---------------updated_options',updated_options)
+        #print('---------------default_selection',default_selection)
         if uploaded_files:
             default_selection = uploaded_files[0] if uploaded_files else "none"
             updated_options = all_files
-            print('---------------all files',all_files)
-            print('---------------updated_options',updated_options)
-            print('---------------default_selection',default_selection)
+
             return gr.update(choices=updated_options,value=default_selection)
         else:
             return gr.update(choices=all_files)
