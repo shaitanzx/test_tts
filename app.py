@@ -183,7 +183,7 @@ def on_reference_upload(files):
         print('---------------all files',all_files)
         print('---------------uploaded_files',uploaded_files)
         updated_options = sorted([f for f in os.listdir("custom") if f.lower().endswith(('.wav', '.mp3'))])
-        default_selection = uploaded_files[0] if uploaded_files else "none"
+        default_selection = None
         text=None
         #print('---------------default_selection',default_selection)
         if uploaded_files:
