@@ -356,7 +356,7 @@ def encode_audio(audio_array,sample_rate,output_format,target_sample_rate):
 
     start_time = time.time()
     output_buffer = io.BytesIO()
-
+    print("________________________")
     try:
         audio_to_write = audio_array
         rate_to_write = sample_rate
@@ -419,7 +419,7 @@ def encode_audio(audio_array,sample_rate,output_format,target_sample_rate):
             #    f"Unsupported output format requested for encoding: {output_format}"
             #)
             return None,f"Unsupported output format requested for encoding: {output_format}"
-
+        print("------------------------------------")
         encoded_bytes = output_buffer.getvalue()
         end_time = time.time()
         print(
