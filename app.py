@@ -470,7 +470,7 @@ def generate_voice_design(text, language, voice_description):
         
         timestamp_str = time.strftime("%Y%m%d_%H%M%S")
         suggested_filename_base = f"qwen3_output_{timestamp_str}"
-        file_name = f"{suggested_filename_base}.{"wav"}"
+        file_name = f"{suggested_filename_base}.wav"
         file_path = OUTPUT_DIR / file_name
         
         with open(file_path, "wb") as f:
