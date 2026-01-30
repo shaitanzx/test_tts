@@ -205,7 +205,7 @@ def on_reference_upload(files):
                 else:
                     return gr.update(),gr.update()   
         else:         
-            return gr.update(),return gr.update()
+            return gr.update(), gr.update()
             
     except Exception as e:
         print(f"Error in reference upload: {e}", exc_info=True)
