@@ -1,5 +1,4 @@
 
-numpy
 transformers==4.57.3
 accelerate==1.12.0
 einops
