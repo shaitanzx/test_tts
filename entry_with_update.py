@@ -68,3 +68,4 @@ def install_requirements(requirements_file):
 if not requirements_met(requirements_file):
         install_requirements(requirements_file)
 
+from app import *
