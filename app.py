@@ -8,6 +8,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 os.environ["HF_HOME"] = os.path.join(ROOT, "model")
 os.makedirs(os.environ["HF_HOME"], exist_ok=True)
 import gradio as gr
+import shared
 import numpy as np
 import torch
 import shutil
