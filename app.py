@@ -40,6 +40,17 @@ CUSTOM_VOICE = sorted([f for f in os.listdir("custom") if f.lower().endswith(('.
 CUSTOM_DIR = os.path.join(ROOT, "custom")
 OUTPUT_DIR = os.path.join(ROOT, "output")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+def get_device() -> torch.device:
+    """
+    Автоматически определяет доступное устройство:
+    CUDA → MPS → CPU (в порядке проверки)
+    """
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+DEVICE=get_device()
 def change_voice_mode(voice_mode):
     return (
         gr.update(visible=(voice_mode == "predefined")),
@@ -232,7 +243,7 @@ def get_model(model_type: str, model_size: str):
         model_path = get_model_path(model_type, model_size)
         loaded_models[key] = Qwen3TTSModel.from_pretrained(
             model_path,
-            device_map="cuda",
+            device_map=DEVICE,
             dtype=torch.bfloat16,
             token=HF_TOKEN,
 #           attn_implementation="flash_attention_2",
