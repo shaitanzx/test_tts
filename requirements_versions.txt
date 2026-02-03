@@ -6,5 +6,5 @@ librosa
 soundfile
 praat-parselmouth
 sox
-onnxruntime==1.18.0
+onnxruntime==1.19.0
 qwen-tts
