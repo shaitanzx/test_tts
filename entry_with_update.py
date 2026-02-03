@@ -50,7 +50,7 @@ print('Update succeeded.')
 
 torch_index_url = os.environ.get('TORCH_INDEX_URL', "https://download.pytorch.org/whl/cu121")
 torch_command = os.environ.get('TORCH_COMMAND',
-                                   f"pip install torch==2.5.1+cu121 torchvision==0.20.1+cu121 torchaudio==2.5.1+cu121 --extra-index-url {torch_index_url}")
+                                   f"pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 --extra-index-url {torch_index_url}")
 requirements_file = os.environ.get('REQS_FILE', "requirements_versions.txt")
 
 print(f"Python {sys.version}")
