@@ -984,18 +984,20 @@ def postprocess(audio_file,speed_factor, silence_trimming, internal_silence_fix,
         return file_path
  
 # Build Gradio UI
-def build_ui():
-    theme = gr.themes.Soft(
-        font=[gr.themes.GoogleFont("Source Sans Pro"), "Arial", "sans-serif"],
-    )
+theme = gr.themes.Soft(
+    font=[gr.themes.GoogleFont("Source Sans Pro"), "Arial", "sans-serif"],
+)
 
-    css = """
-    #audio-player-container {
-        display: none !important;
-    }
-    """
+css = """
+#audio-player-container {
+    display: none !important;
+}
+"""
+shared.gradio_root = gr.Blocks(title="Qwen3-TTS",css=css).queue()
 
-    with gr.Blocks(title="Qwen3-TTS",css=css) as demo:
+
+with shared.gradio_root as demo:
+#    with gr.Blocks(title="Qwen3-TTS",css=css) as demo:
         demo.load(
             None,
             None,
@@ -1253,6 +1255,12 @@ def parse_args():
 
     
     return parser.parse_args()
+
+args = parse_args()
+shared.gradio_root.launch(
+    share=args.share,inbrowser=not args.share
+)
+
 
 if __name__ == "__main__":
     args = parse_args()
