@@ -8,6 +8,6 @@ librosa
 soundfile
 praat-parselmouth
 sox
-onnxruntime==1.16.3
+onnxruntime
 torch
 numpy
