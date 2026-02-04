@@ -1006,9 +1006,9 @@ with shared.gradio_root as demo:
         )
         gr.Markdown(
             """
-# 🎤 Qwen3-TTS Demo
+# 🎤 Qwen3-TTS
 
-A unified Text-to-Speech demo featuring three powerful modes:
+A Text-to-Speech  featuring three powerful modes:
 - **Voice Design**: Create custom voices using natural language descriptions
 - **Voice Clone (Base)**: Clone any voice from a reference audio
 - **TTS (CustomVoice)**: Generate speech with predefined speakers and optional style instructions
