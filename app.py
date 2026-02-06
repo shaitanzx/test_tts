@@ -532,7 +532,7 @@ def generate_voice_clone(voice_mode_radio, clone_ref_audio_drop, clone_ref_text_
             ref_audio=audio_tuple,
             ref_text=ref_text.strip() if ref_text else None,
             x_vector_only_mode=use_xvector_only,
-            max_new_tokens=min(512, int(len(target_text.strip()) * 1.5)),
+            max_new_tokens=2048,
         )
         encoded_audio_bytes = encode_audio(
             audio_array=wavs[0],
