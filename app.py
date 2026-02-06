@@ -517,7 +517,8 @@ def generate_voice_clone(voice_mode_radio, clone_ref_audio_drop, clone_ref_text_
 
     if not use_xvector_only and (not ref_text or not ref_text.strip()):
         return None, "Error: Reference text is required when 'Use x-vector only' is not enabled."
-
+    if ref_text.strip()=="":
+        use_xvector_only=True
     try:
         tts = get_model("Base", model_size)
         wavs, sr = tts.generate_voice_clone(
