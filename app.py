@@ -520,12 +520,6 @@ def generate_voice_clone(voice_mode_radio, clone_ref_audio_drop, clone_ref_text_
 
     try:
         tts = get_model("Base", model_size)
-        print ('-----------------------',target_text.strip())
-        print ('-----------------------', language)
-        print ('-----------------------',audio_tuple)
-        print ('-----------------------',ref_text.strip())
-        print ('-----------------------',use_xvector_only)
-
         wavs, sr = tts.generate_voice_clone(
             text=target_text.strip(),
             language=language,
