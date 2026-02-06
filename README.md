@@ -157,7 +157,7 @@ After generation in each of the modes, you can additionally run the post-process
 
 <table>
   <tr>
-    <td><a href="https://colab.research.google.com/github/shaitanzx/qwen3_tts/blob/main/qwen3_colab.ipynb" rel="nofollow"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab" data-canonical-src="https://colab.research.google.com/assets/colab-badge.svg"></a></td><td>Chatterbox_vc_mtl in Google Colab</td>
+    <td><a href="https://colab.research.google.com/github/shaitanzx/qwen3_tts/blob/main/qwen3_colab.ipynb" rel="nofollow"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab" data-canonical-src="https://colab.research.google.com/assets/colab-badge.svg"></a></td><td>Qwen3_TTS in Google Colab</td>
   </tr>
 </table>
 
