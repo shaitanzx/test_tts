@@ -1,4 +1,5 @@
-<img width="402" height="117" alt="image" src="https://github.com/user-attachments/assets/087def0b-4978-4109-9ab4-975379a69305" />
+<img width="1251" height="313" alt="image" src="https://github.com/user-attachments/assets/80272b71-b694-4449-94f0-31cd977b9643" />
+
 
 Qwen3-TTS covers 10 major languages (Chinese, English, Japanese, Korean, German, French, Russian, Portuguese, Spanish, and Italian) as well as multiple dialectal voice profiles to meet global application needs. 
 
